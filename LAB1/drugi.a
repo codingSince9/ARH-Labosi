@@ -1,0 +1,97 @@
+		ORG 0
+		MOVE	104,	R3
+		MOVE	5,		R4
+		MOVE	10000,	SP
+		
+UCITAJ	LOADH	R1,		(R3)
+		LOADH	R2,		(R3 + 2)
+		PUSH	R1
+		PUSH	R2
+		CALL	VISE_1
+		POP		R2
+		POP		R1
+		STORE	R0,		(R3)
+		SUB		R4,		1,		R4
+		ADD		R3,		4,		R3
+		CMP		R4,		0
+		JR_Z	KRAJ
+		JR		UCITAJ
+		
+		ORG 	100
+		
+KRAJ	HALT
+		DH		1234, 00FF, 00FF, FF01, 0001, FFFF, 002A, 020A, 0456, 0123, 8000, 8000
+		
+		ORG     150
+		
+VISE_1	PUSH	R1							;R1=>prvi broj
+		PUSH	R2							;R2=>drugi broj
+		PUSH	R3						
+		PUSH	R4							
+		PUSH	R5
+
+		
+PRVI	MOVE    0, 		R3					;R3=> brojac jedinica za prvu polovicu
+		MOVE	20,		R4					
+		
+LOOP1	CMP		R4,		0
+		JR_Z	DRUGI
+		SUB		R4,		1,		R4
+		ROTR	R1,		1,		R1
+		JR_C	PRIMA1
+		JR		LOOP1
+		
+PRIMA1	ADD		R3,		1,		R3			;dodaje jedan na brojac jedinica
+		JR		LOOP1
+		
+DRUGI	MOVE	0,		R5					;R5=>brojac jedinica za drugu polovicu
+		MOVE	20,		R4		
+		
+LOOP2	CMP		R4,		0
+		JR_Z	DALJE
+		SUB 	R4,		1,		R4
+		ROTR	R2,		1,		R2
+		JR_C	PRIMA2
+		JR		LOOP2
+		
+PRIMA2	ADD		R5,		1,		R5			;dodaje jedan na brojac jedinica
+		JR 		LOOP2
+		
+DALJE	CMP		R3,		R5					;usporedba koji je veći
+		JR_EQ	VRATI
+		JR_SGT	VRATI1
+		
+VRATI2	LOAD 	R5,		(MASKA)
+		AND		R2,		R5,		R0
+		CMP		R0,		0
+		JR_Z	POZ2
+		
+NEG2	LOAD	R5,		(MASKA1)
+		OR		R2,		R5,		R2
+		
+POZ2	MOVE	R2,		R0
+		JR		PEND
+		
+VRATI	LOAD	R4,		(BROJ)			
+		MOVE	R4,		R0
+		JR		PEND
+		
+VRATI1	LOAD	R5,		(MASKA)
+		AND		R1,		R5,		R0
+		CMP		R0,  	0
+		JR_Z	POZ1
+		
+NEG1	LOAD 	R5,		(MASKA1)
+		OR		R1,		R5,		R1
+		
+POZ1	MOVE	R1,		R0
+		
+PEND	POP		R5
+		POP		R4
+		POP		R3
+		POP		R2
+		POP		R1
+		RET
+BROJ	DW		80000000
+MASKA	DW		00008000
+MASKA1	DW		FFFF0000
