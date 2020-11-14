@@ -7,55 +7,56 @@ P3_IEND	EQU 0FFFF3008
 P3_STOP	EQU 0FFFF300C
 
 			ORG 0
-			MOVE 10000, SP			; inicijalizira stog
+			MOVE 10000, SP
 			JR GLAVNI
+
 			ORG 8
-			DW 200					; adresa pp
-			
-GLAVNI		MOVE %B 10000, SR		; postavlja GIE
+			DW 500
+
+GLAVNI		MOVE %B 10000, SR
 			MOVE 1, R0
 			STORE R0, (P3_STOP)		; omogucuje postavljanje prekida
 
-CEKAJ		LOAD R0, (UVJ2_BS)		; ucitava stanje bistabila
-			ADD R0, 0, R0			; zastavice
-			JR_Z CEKAJ				; ako nije 1 cekaj dok postane 1
+CEKAJ		LOAD R0, (UVJ2_BS)
+			ADD R0, 0, R0
+			JR_Z CEKAJ
 			LOAD R0, (BROJAC)		
-			ADD R0, 1, R0			; dodaj 1 brojacu
-			STORE R0, (BROJAC)		; spremi ga
+			ADD R0, 1, R0
+			STORE R0, (BROJAC)
 			LOAD R0, (BROJ)
 			STORE R0, (UVJ2_D)		; spremi broj na vj2
-			STORE R0, (UVJ2_BS)		; resetiraj stanje bistabila
-			JR CEKAJ				; ponavljaj
-			
-			ORG 200
+			STORE R0, (UVJ2_BS)
+			JR CEKAJ
+
+			ORG 500
 			PUSH R0
-			MOVE SR, R0				; spremanje konteksta
+			MOVE SR, R0
 			PUSH R0
-			STORE R0, (P3_BS)		; resetiraj stanje bistabila
+			STORE R0, (P3_BS)
 			STORE R0, (P3_D)		; spremi brojac od vj2 na vj3
-			LOAD R0, (BEZ1_D)		; ucitaj podatak
+			LOAD R0, (BEZ1_D)
 			CMP R0, 0
-			JR_SLT KRAJ				; ako je manji od 0 skoci na kraj
-			PUSH R0					; stavi podatak na stog
+			JR_SLT KRAJ
+			PUSH R0
 			CALL OBRADI
-			ADD SP, 4, SP			; makni podatak sa stoga
+			ADD SP, 4, SP
 			STORE R0, (BROJ)		; spremi podatak na lokaciju broj
 			STORE R0, (P3_IEND)		; dojavi kraj posluzivanja
 			POP R0
 			MOVE R0, SR
-			POP R0					; obnovi kontekst
+			POP R0
 			RETI
-			
+
 OBRADI		PUSH R1
 			MOVE 1, R1
-			LOAD R0, (SP + 8)			; ucitaj podatak sa stoga
-			SHL R0, R1, R0			; 2^podatak
-			POP R1					; obnovi registar
+			LOAD R0, (SP + 8)
+			SHL R1, R0, R0			; 2^podatak
+			POP R1
 			RET
-			
+
 KRAJ		MOVE 0, R0
 			STORE R0, (P3_STOP)		; zabrani postavljanje prekida
 			HALT
-			
+
 BROJ		DW 0
 BROJAC		DW 0

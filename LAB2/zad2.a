@@ -17,12 +17,12 @@ BVJ			EQU 0FFFFFFFC
 			ORG 0C
 			PUSH R0
 			MOVE SR, R0
-			PUSH R0						; spremi kontekst
+			PUSH R0
 			PUSH R1
-			STORE R0, (DMA_BS)			; resetiraj bistabil
+			STORE R0, (DMA_BS)
 			LOAD R0, (BLOKOVI)
 			ADD R0, 1, R0
-			STORE R0, (BLOKOVI)			; povecaj brojac za 1
+			STORE R0, (BLOKOVI)
 			LOAD R0, (DMA_DES)
 			MOVE -1, R1
 			STORE R1, (R0)				; zapisi -1 na zadnje mjesto
@@ -34,32 +34,32 @@ BVJ			EQU 0FFFFFFFC
 			POP R0						; obnovi kontekst
 			RETN
 			
-GLAVNI		MOVE %B 0111 R0
+GLAVNI		MOVE %B 0111, R0
 			STORE R0, (DMA_CR)			; inicijalizacija dma
 			MOVE BVJ, R1
-			STORE R1, (DMA_SRC)			; stavljamo adresu od koje ce dma uzimat podatke
+			STORE R1, (DMA_SRC)			; stavljamo adresu od koje ce dma uzimati podatke
 			MOVE 1000, R0
 			STORE R0, (DMA_DES)			; lokacija na koju spremamo
 			MOVE %D 1000, R0
-			STORE R0, (CTLR)			; broji 1000 taktova
+			STORE R0, (CTLR)
 			MOVE 1, R0
 			STORE R0, (CTCR)			; palimo brojilo
 			
-CEKAJ		LOAD R0, (CTBS)				; ucitaj stanje bistabila
+CEKAJ		LOAD R0, (CTBS)
 			ADD R0, 0, R0
 			CMP R0, 0
 			JR_Z CEKAJ
-			STORE R0, (CTBS)			; resetiraj bistabil
+			STORE R0, (CTBS)
 			LOAD R0, (BLOKOVI)
-			CMP R0, 5					; ako je preneseno 5 blokova KRAJ
+			CMP R0, 5
 			JR_EQ KRAJ
-			MOVE 9, R0
-			STORE R0, (DMA_SIZE)		; posalji kolko podataka cemo upisati
+			MOVE %D 9, R0
+			STORE R0, (DMA_SIZE)		; posalji koliko podataka cemo upisati
 			MOVE 1, R0
 			STORE R0, (DMA_START)
-			STORE R0, (CT_END)			; kraj posluzivanja, moze ponovo postavit bistabil
+			STORE R0, (CTEND)			; kraj posluzivanja, moze ponovo postavit bistabil
 			JR CEKAJ
-			
+
 KRAJ		MOVE %B 000, R0
 			STORE R0, (DMA_BS)
 			STORE R0, (CTCR)
