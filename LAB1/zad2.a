@@ -1,0 +1,72 @@
+			ORG 0
+			MOVE 0, R1
+			
+GLAVNI		MOVE 10000, SP
+			LOAD R0, (R1+PODACI)
+			LOAD R6, (DUPLI)				; ucitaj podatak 80008000 koji oznacava kraj
+			CMP R0, R6						; usporedjuje podatak ucitan u R0 sa R6
+			JR_Z KRAJ						; ako je podatak isti skoci na kraj
+			LOADH R0, (R1+PODACI)			; ucitaj polurijec
+			PUSH R0							; spremi ju na stog
+			ADD R1, 2, R1					; sljedeca lokacija polurijeci
+			LOADH R0, (R1+PODACI)			; ucitaj sljedecu
+			PUSH R0							; stavi ju na stog
+			ADD R1, 2, R1					; povecaj odmak
+			CALL VISE_1						; pozovi funkciju
+			SUB R1, 4, R1					; vracanje na pocetak citanja 2 polurijeci
+			STORE R0, (R1+PODACI)			; spremi R0 na odredjenu adresu
+			ADD R1, 4, R1					; povecaj R1  da pokazuje na sljedecu lokaciju
+			JR GLAVNI
+			
+KRAJ		HALT
+
+PODACI		DH 1234, FF, FF, -FF, 1, -1, 2A, 20A, 456, 123, 8000, 8000
+
+DUPLI		DW 80008000
+
+VISE_1		PUSH R2							; spremi registre
+			PUSH R3
+			PUSH R4
+			PUSH R5
+			MOVE 0, R2						; broji jedinice u R4
+			MOVE 0, R3						; broji jedinice u R5
+			LOAD R4, (SP+18)				; ucitaj prvu polurijec
+			LOAD R5, (SP+14)				; ucitaj drugu polurijec
+			
+PETLJA1		SHR R4, 1, R4					; logicki pomice polurijec za 1
+			JR_NC DALJE1					; ako polurijec nije 0 skoci na pocetak
+			ADD R2, 1, R2					; ako je 1 povecaj brojac
+
+DALJE1		SUB R4, 0, R4					; postavlja zastavice
+			JR_NZ PETLJA1					; ako polurijec nije 0 skoci na pocetak
+			
+PETLJA2		SHR R5, 1, R5					; logicki pomice 2 polurijec za 1
+			JR_NC DALJE2					; usporedjuje jeli pomaknuti bit spremljen u C
+			ADD R3, 1, R3					; ako je C=1 povecaj R3 koji broji 1 u drugoj rijeci
+			
+DALJE2		SUB R5, 0, R5					; postavi zastavice
+			JR_NZ PETLJA2					; ako polurijec nije 0 skoci na pocetak
+			CMP R2, R3						; usporedi brojace
+			JR_UGT VECI						; ako je prvi veci skoci na veci
+			JR_Z JEDNAKI					; ako je Z=0 onda su jednaki i skoci na jednaki
+			JR MANJI						; ako je prvi manji skoci na manji
+			
+VECI		LOAD R0, (SP+18)				; ucitaj prvu polurijec sa stoga u R0
+			SHL R0, %D 16, R0				; predznacno prosirujemo pa logicki u lijevo za 16 bitova
+			ASHR R0, %D 16, R0				; aritmeticki pomicemo u desno za 16 bitova
+			JR GOTOVO						; skoci na kraj funkcije
+			
+JEDNAKI		LOAD R0, (ISTI)					; ako su brojaci isti ucitaj vrijednost sa ISTI
+			JR GOTOVO						; skoci na kraj funkcije
+			
+MANJI		LOAD R0, (SP+14)				; ucitaj drugu polurijec sa stoga u R0
+			SHL R0, %D 16, R0
+			ASHR R0, %D 16, R0
+			
+GOTOVO		POP R5							; obnovi registre
+			POP R4
+			POP R3
+			POP R2
+			RET
+
+ISTI		DW 80000000

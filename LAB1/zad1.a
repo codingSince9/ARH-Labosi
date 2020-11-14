@@ -1,0 +1,41 @@
+			ORG 0
+			MOVE 500, R0
+			MOVE 1000, R1
+			LOAD R3, (R0)		; brojac
+			ADD R0, 4, R0
+			MOVE 80, R4			; broj koji cu upisati kada se prekoraci opseg
+			
+PETLJA		LOADH R2, (R0)		; ucitaj podatak koji se nalazi na mem lok. R0
+			AND R2, 7F00, R5	; provjerava dali je broj izvad opsega
+			JR_NZ PRESKOCI
+			AND R2, 8000, R6	; ispituje prvi bit
+			SUB R6, 0, R6		; postavlja zastavice
+			JR_NZ KOMPLEMENT
+			STOREB R2, (R1)
+			ADD R0, 2, R0		; pripremi sljedece mjesto za citanje
+			ADD R1, 1, R1		; pripremi sljedece mjesto za spremanje
+			SUB R3, 1, R3		; smanji brojac
+			JR_NZ PETLJA
+			JR_Z KRAJ			; ako je brojac 0 skoci na kraj
+
+PRESKOCI	STOREB R4, (R1)		; spremi broj 80 na lok. R1
+			ADD R0, 2, R0		; pripremi sljedece mjesto citanja
+			ADD R1, 1, R1		; pripremi sljedece mjesto pisanja
+			SUB R3, 1, R3		; smanji brojac
+			JR_Z KRAJ			; skoci na kraj ako je brojac 0
+			JR PETLJA
+
+KOMPLEMENT	XOR R2, -1, R2
+			ADD R2, 1, R2		; 2 komplement
+			STOREB R2, (R1)		; spremi podatak R2 na mem lok. R1
+			ADD R0, 2, R0		; pripremi sljedece mjesto citanja
+			ADD R1, 1, R1		; pripremi sljedece mjesto pisanja
+			SUB R3, 1, R3		; smanji brojac
+			JR_Z KRAJ			; skoci na kraj ako je brojac 0
+			JR PETLJA
+			
+			ORG 500
+			DW 6
+			DH 8001, 0002, 0123, 0025, 82BC, 8021
+
+KRAJ		HALT
